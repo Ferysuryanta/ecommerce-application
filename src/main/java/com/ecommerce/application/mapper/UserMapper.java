@@ -1,6 +1,8 @@
 package com.ecommerce.application.mapper;
 
 import com.ecommerce.application.dto.UserDto;
+import com.ecommerce.application.dto.UserProfileDto;
+import com.ecommerce.application.dto.UserRegistrationDto;
 import com.ecommerce.application.model.User;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
@@ -71,5 +73,28 @@ public class UserMapper {
                     .toList());
         }
         return user;
+    }
+
+    public User toUserRegistration(UserRegistrationDto userRegistrationDto) {
+        if (userRegistrationDto == null) {
+            return null;
+        }
+        User user = new User();
+        user.setUsername(userRegistrationDto.getUsername());
+        user.setPassword(userRegistrationDto.getPassword());
+        user.setEmail(userRegistrationDto.getEmail());
+        return user;
+    }
+
+    public UserProfileDto toUserProfileDto(User user) {
+        if (user == null) {
+            return null;
+        }
+        var userProfileDto = new UserProfileDto();
+        userProfileDto.setUsername(user.getUsername());
+        userProfileDto.setEmail(user.getEmail());
+        userProfileDto.setFirstname(user.getFirstname());
+        userProfileDto.setLastname(user.getLastname());
+        return userProfileDto;
     }
 }

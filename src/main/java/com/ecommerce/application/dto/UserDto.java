@@ -13,6 +13,8 @@ import java.util.UUID;
 public class UserDto {
 
     private UUID userId;
+    private String firstname;
+    private String lastname;
     private String username;
     private String email;
     private String address;

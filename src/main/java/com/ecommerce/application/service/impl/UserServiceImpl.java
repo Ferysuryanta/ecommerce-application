@@ -1,10 +1,15 @@
 package com.ecommerce.application.service.impl;
 
 import com.ecommerce.application.dto.UserDto;
+import com.ecommerce.application.dto.UserLoginDto;
+import com.ecommerce.application.dto.UserProfileDto;
+import com.ecommerce.application.dto.UserRegistrationDto;
 import com.ecommerce.application.exception.ResourceNotFoundException;
 import com.ecommerce.application.mapper.UserMapper;
+import com.ecommerce.application.model.User;
 import com.ecommerce.application.repository.UserRepository;
 import com.ecommerce.application.service.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +25,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
+    private PasswordEncoder passwordEncoder;
+
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
     }
@@ -70,5 +77,50 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new ResourceNotFoundException(USER_NOT_FOUND);
         }
+    }
+
+    @Override
+    @Transactional
+    public UserDto registerUser(UserRegistrationDto userRegistrationDto) {
+        if (userRepository.existsByUsername(userRegistrationDto.getUsername())) {
+            throw new IllegalArgumentException("Username is already taken");
+        }
+        if (userRepository.existsByEmail(userRegistrationDto.getEmail())) {
+            throw new IllegalArgumentException("Email is already registered");
+        }
+
+        var user = userMapper.toUserRegistration(userRegistrationDto);
+        user.setPassword(passwordEncoder.encode(userRegistrationDto.getPassword()));
+        var savedUser = userRepository.save(user);
+        return userMapper.toUserDto(savedUser);
+    }
+
+    @Override
+    public Optional<UserDto> loginUser(UserLoginDto userLoginDto) {
+        Optional<User> userOpt = userRepository.findByUsername(userLoginDto.getUsername());
+        if (userOpt.isPresent() && passwordEncoder.matches(userLoginDto.getPassword(), userOpt.get().getPassword())) {
+            return Optional.of(userMapper.toUserDto(userOpt.get()));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public UserDto getUserProfile(UUID userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        return userMapper.toUserDto(user);
+    }
+
+    @Override
+    @Transactional
+    public UserDto updateUserProfile(UUID userId, UserProfileDto userProfileDto) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND));
+        user.setUsername(userProfileDto.getUsername());
+        user.setEmail(userProfileDto.getEmail());
+        user.setFirstname(userProfileDto.getFirstname());
+        user.setLastname(userProfileDto.getLastname());
+        var updateUserProfile = userRepository.save(user);
+        return userMapper.toUserDto(updateUserProfile);
     }
 }

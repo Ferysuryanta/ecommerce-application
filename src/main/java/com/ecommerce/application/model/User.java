@@ -22,6 +22,10 @@ public class User {
     @Id
     @GeneratedValue(generator = "UUID")
     private UUID userId;
+    @Size(min = 3, max = 50, message = "Firstname must be between 3 and 50 characters")
+    private String firstname;
+    @Size(min = 3, max = 50, message = "Lastname must be between 3 and 50 characters")
+    private String lastname;
 
     @NotBlank(message = "Username is mandatory")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
