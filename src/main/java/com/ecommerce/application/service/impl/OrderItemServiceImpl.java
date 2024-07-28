@@ -2,7 +2,6 @@ package com.ecommerce.application.service.impl;
 
 import com.ecommerce.application.dto.OrderItemDto;
 import com.ecommerce.application.exception.ResourceNotFoundException;
-import com.ecommerce.application.handler.BusinessErrorCodes;
 import com.ecommerce.application.mapper.OrderItemMapper;
 import com.ecommerce.application.repository.OrderItemRepository;
 import com.ecommerce.application.service.OrderItemService;
@@ -63,6 +62,7 @@ public class OrderItemServiceImpl implements OrderItemService {
     }
 
     @Override
+    @Transactional
     public void deleteOrderItem(UUID orderItemId) {
         if (orderItemRepository.existsById(orderItemId)) {
             orderItemRepository.deleteById(orderItemId);
