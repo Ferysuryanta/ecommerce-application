@@ -20,8 +20,9 @@ import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private JwtService jwtService;
-    private UserDetailsService userDetailsService;
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
+
 
     public JwtFilter(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
@@ -51,7 +52,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             var userDetails = userDetailsService.loadUserByUsername(username);
-            if (jwtService.validateToken(jwt, userDetails.getUsername())) {
+            if (jwtService.validateToken(jwt, userDetails)) {
                 var authenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

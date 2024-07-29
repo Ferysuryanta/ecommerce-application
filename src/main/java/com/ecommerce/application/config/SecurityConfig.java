@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
+                                "/auth/**",
                                 "/api/users/register",
                                 "/api/users/login",
                                 "/api/users/refresh-token")

@@ -1,5 +1,6 @@
 package com.ecommerce.application.controller;
 
+import com.ecommerce.application.auth.LoginResponse;
 import com.ecommerce.application.config.JwtFilter;
 import com.ecommerce.application.dto.UserDto;
 import com.ecommerce.application.dto.UserLoginDto;
@@ -23,20 +24,6 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<UserDto> registerUser(@Valid @RequestBody UserRegistrationDto userRegistrationDto) {
-        var userDto = userService.registerUser(userRegistrationDto);
-        return ResponseEntity.ok(userDto);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<UserDto> loginUser(@Valid @RequestBody UserLoginDto userLoginDto) {
-        return userService.loginUser(userLoginDto)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(401)
-                .build());
     }
 
     @GetMapping("/profile/{userId}")

@@ -1,5 +1,7 @@
 package com.ecommerce.application.service.impl;
 
+import com.ecommerce.application.auth.LoginResponse;
+import com.ecommerce.application.config.JwtService;
 import com.ecommerce.application.dto.UserDto;
 import com.ecommerce.application.dto.UserLoginDto;
 import com.ecommerce.application.dto.UserProfileDto;
@@ -11,6 +13,7 @@ import com.ecommerce.application.repository.UserRepository;
 import com.ecommerce.application.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -24,12 +27,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-
+    private final JwtService jwtService;
     private PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -96,10 +100,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<UserDto> loginUser(UserLoginDto userLoginDto) {
+    @Transactional(propagation = Propagation.REQUIRED)
+    public Optional<LoginResponse> loginUser(UserLoginDto userLoginDto) {
         Optional<User> userOpt = userRepository.findByUsername(userLoginDto.getUsername());
         if (userOpt.isPresent() && passwordEncoder.matches(userLoginDto.getPassword(), userOpt.get().getPassword())) {
-            return Optional.of(userMapper.toUserDto(userOpt.get()));
+            var userDto = userMapper.toUserDto(userOpt.get());
+            String jwtToken = jwtService.generateToken(userOpt.get());
+            String refreshToken = jwtService.generateRefreshToken(userOpt.get());
+            var loginResponse = new LoginResponse(userDto, jwtToken, refreshToken);
+            return Optional.of(loginResponse);
         }
         return Optional.empty();
     }
